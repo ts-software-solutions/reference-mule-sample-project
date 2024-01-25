@@ -33,12 +33,12 @@ on:
 jobs:
   Run-Tests:
     if: ${{ (GITHUB.ref_name != 'main' && GITHUB.event_name == 'push') || (GITHUB.event_name == 'pull_request')}}
-    uses: ts-software-solutions/ghf-mule-sample-project/.github/workflows/build.yml@main
+    uses: ts-software-solutions/reference-mule-sample-project/.github/workflows/build.yml@main
     secrets: inherit
 
   Build-And-Publish:
     if: ${{ GITHUB.ref_name == 'main' && GITHUB.event_name == 'push'}}
-    uses: ts-software-solutions/ghf-mule-sample-project/.github/workflows/build.yml@main
+    uses: ts-software-solutions/reference-mule-sample-project/.github/workflows/build.yml@main
     secrets: inherit
     with:
       build-test: 'build'
@@ -46,7 +46,7 @@ jobs:
   Deploy-To-Dev:
     if: ${{ !cancelled() && !failure() &&  GITHUB.ref_name == 'main' && !inputs.deploy-directly-to-prod }}
     needs: [Build-And-Publish]
-    uses: ts-software-solutions/ghf-mule-sample-project/.github/workflows/deploy.yml@main
+    uses: ts-software-solutions/reference-mule-sample-project/.github/workflows/deploy.yml@main
     secrets:
       CRYPTO_KEY: ${{ secrets.MULE_DEV_CRYPTO_KEY }} 
       MULE_CLIENT_ID: ${{ secrets.MULE_CLIENT_ID }} 
@@ -60,7 +60,7 @@ jobs:
   
   Deploy-To-UAT:
     if: ${{ !cancelled() && !failure() && GITHUB.ref_name == 'main' && !inputs.deploy-directly-to-prod }}
-    uses: ts-software-solutions/ghf-mule-sample-project/.github/workflows/deploy.yml@main
+    uses: ts-software-solutions/reference-mule-sample-project/.github/workflows/deploy.yml@main
     needs: [Deploy-To-Dev]
     secrets:
       CRYPTO_KEY: ${{ secrets.MULE_DEV_CRYPTO_KEY }} 
@@ -75,7 +75,7 @@ jobs:
 
   Deploy-To-Prod:
     if: ${{ !cancelled() && !failure() && GITHUB.ref_name == 'main' }}
-    uses: ts-software-solutions/ghf-mule-sample-project/.github/workflows/deploy.yml@main
+    uses: ts-software-solutions/reference-mule-sample-project/.github/workflows/deploy.yml@main
     needs: [Deploy-To-Dev, Deploy-To-UAT]
     secrets:
       CRYPTO_KEY: ${{ secrets.MULE_PROD_CRYPTO_KEY }} 
@@ -90,7 +90,7 @@ jobs:
 
   Create-Release:
     if: ${{ !cancelled() &&  !failure() && GITHUB.ref_name == 'main' && GITHUB.event_name == 'push' && needs.Build-And-Publish.result == 'success' && needs.Deploy-to-PROD.result == 'success' }}
-    uses: ts-software-solutions/ghf-mule-sample-project/.github/workflows/create-release.yml@main
+    uses: ts-software-solutions/reference-mule-sample-project/.github/workflows/create-release.yml@main
     needs: [Build-And-Publish, Deploy-To-Dev, Deploy-To-UAT, Deploy-To-Prod]
     secrets: inherit
     with:
