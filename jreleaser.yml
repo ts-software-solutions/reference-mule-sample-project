@@ -1,0 +1,56 @@
+project:
+  name: ghf-mule-sample-project
+  description: A sample mule project to be used for building CI/CD pipelines
+  longDescription: |
+    The purpose of this Mule application is to provide a base application for configuring a CI/CD pipeline that requires authenticating 
+    to a private maven repository for the AVIO custom logger and to MuleSoft's EE repository for the execution of MUnits
+  links:
+    homepage: https://github.com/ts-software-solutions/
+    documentation: https://github.com/ts-software-solutions/ghf-mule-sample-project/
+  authors:
+    - Tanner Sherman
+  license: BSD 2-Clause
+  inceptionYear: 2024
+  tags:
+    - mule
+  java:
+    groupId: com.ts.software.solutions
+    version: 8
+
+release:
+  github:
+    owner: 'ts-software-solutions'
+    overwrite: true
+    draft: false
+    sign: false
+    releaseName: '{{tagName}}'
+    skipTag: false
+    milestone:
+      close: false
+    changelog:
+      skipMergeCommits: true
+      formatted: ALWAYS
+      preset: conventional-commits
+      format: '- {{commitShortHash}} {{commitTitle}}'
+      contributors:
+        format: '- {{contributorName}}{{#contributorUsernameAsLink}} ({{.}}){{/contributorUsernameAsLink}}'
+      labelers:
+        - label: 'dependencies'
+          title: 'chore(deps):'
+          order: 130
+      categories:
+        - title: '⚙️  Dependencies'
+          key: 'dependencies'
+          order: 80
+          labels:
+            - 'dependencies'
+      hide:
+        categories:
+          - 'merge'
+        contributors:
+          - 'GitHub'
+
+distributions:
+  app-jar:
+    artifacts:
+      - path: target/mule-sample-project-{{projectVersionNumber}}-mule-application.jar

@@ -1,0 +1,12 @@
+http:
+  port: "8081"
+
+auto-discovery:
+  api-id: "12345678"
+
+plain:
+  text: 
+    property: "This is an example of a plain text property"
+    
+secure: 
+    property: "![E+sA/1y4QmA6tgZyOdsYPvHFXbHOGns4ZLmOf7vFEKk=]"

@@ -1,0 +1,99 @@
+name: Deployment Pipeline
+
+on:
+  # will kick off a build on any push to the following patterns. If it's a non-main branch then only tests will run
+  push:
+    branches:
+      - 'main'
+      - 'fix/*'
+      - 'feature/*'
+      - 'hotfix/*'
+
+  # to kick off manually
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Version corresponding to the tag you wish to deploy (eg. 1.0.01192499)'
+        required: true
+        type: string
+      deploy-directly-to-prod:
+        description: |
+          Set to true if you would like to deploy directly to PROD in an emergency situation. 
+          Subject to environment deployment protections
+        required: false
+        type: boolean
+        default: false
+
+  # for running tests when a PR is created
+  pull_request:
+    types:
+      - opened
+    branches:
+      - 'main'
+jobs:
+  Run-Tests:
+    if: ${{ (GITHUB.ref_name != 'main' && GITHUB.event_name == 'push') || (GITHUB.event_name == 'pull_request')}}
+    uses: ts-software-solutions/ghf-mule-sample-project/.github/workflows/build.yml@main
+    secrets: inherit
+
+  Build-And-Publish:
+    if: ${{ GITHUB.ref_name == 'main' && GITHUB.event_name == 'push'}}
+    uses: ts-software-solutions/ghf-mule-sample-project/.github/workflows/build.yml@main
+    secrets: inherit
+    with:
+      build-test: 'build'
+
+  Deploy-To-Dev:
+    if: ${{ !cancelled() && !failure() &&  GITHUB.ref_name == 'main' && !inputs.deploy-directly-to-prod }}
+    needs: [Build-And-Publish]
+    uses: ts-software-solutions/ghf-mule-sample-project/.github/workflows/deploy.yml@main
+    secrets:
+      CRYPTO_KEY: ${{ secrets.MULE_DEV_CRYPTO_KEY }} 
+      MULE_CLIENT_ID: ${{ secrets.MULE_CLIENT_ID }} 
+      MULE_CLIENT_SECRET: ${{ secrets.MULE_CLIENT_SECRET }} 
+      ANYPOINT_CLIENT_ID: ${{ secrets.ANYPOINT_CLIENT_ID }} 
+      ANYPOINT_CLIENT_SECRET: ${{ secrets.ANYPOINT_CLIENT_SECRET }} 
+      GH_PAT: ${{ secrets.GH_PAT }} 
+    with:
+      tag-name: ${{ inputs.tag }} 
+      mule-env: 'DEV'
+  
+  Deploy-To-UAT:
+    if: ${{ !cancelled() && !failure() && GITHUB.ref_name == 'main' && !inputs.deploy-directly-to-prod }}
+    uses: ts-software-solutions/ghf-mule-sample-project/.github/workflows/deploy.yml@main
+    needs: [Deploy-To-Dev]
+    secrets:
+      CRYPTO_KEY: ${{ secrets.MULE_DEV_CRYPTO_KEY }} 
+      MULE_CLIENT_ID: ${{ secrets.MULE_CLIENT_ID }} 
+      MULE_CLIENT_SECRET: ${{ secrets.MULE_CLIENT_SECRET }} 
+      ANYPOINT_CLIENT_ID: ${{ secrets.ANYPOINT_CLIENT_ID }} 
+      ANYPOINT_CLIENT_SECRET: ${{ secrets.ANYPOINT_CLIENT_SECRET }} 
+      GH_PAT: ${{ secrets.GH_PAT }} 
+    with:
+      tag-name: ${{ inputs.tag }} 
+      mule-env: 'UAT'
+
+  Deploy-To-Prod:
+    if: ${{ !cancelled() && !failure() && GITHUB.ref_name == 'main' }}
+    uses: ts-software-solutions/ghf-mule-sample-project/.github/workflows/deploy.yml@main
+    needs: [Deploy-To-Dev, Deploy-To-UAT]
+    secrets:
+      CRYPTO_KEY: ${{ secrets.MULE_PROD_CRYPTO_KEY }} 
+      MULE_CLIENT_ID: ${{ secrets.MULE_CLIENT_ID }} 
+      MULE_CLIENT_SECRET: ${{ secrets.MULE_CLIENT_SECRET }} 
+      ANYPOINT_CLIENT_ID: ${{ secrets.ANYPOINT_CLIENT_ID }} 
+      ANYPOINT_CLIENT_SECRET: ${{ secrets.ANYPOINT_CLIENT_SECRET }} 
+      GH_PAT: ${{ secrets.GH_PAT }} 
+    with:
+      tag-name: ${{ inputs.tag }} 
+      mule-env: 'PROD'
+
+  Create-Release:
+    if: ${{ !cancelled() &&  !failure() && GITHUB.ref_name == 'main' && GITHUB.event_name == 'push' && needs.Build-And-Publish.result == 'success' && needs.Deploy-to-PROD.result == 'success' }}
+    uses: ts-software-solutions/ghf-mule-sample-project/.github/workflows/create-release.yml@main
+    needs: [Build-And-Publish, Deploy-To-Dev, Deploy-To-UAT, Deploy-To-Prod]
+    secrets: inherit
+    with:
+      early-access-tag-name: 'early-access'
+      version-to-release: ${{ needs.Build-And-Publish.outputs.released-version }}
+

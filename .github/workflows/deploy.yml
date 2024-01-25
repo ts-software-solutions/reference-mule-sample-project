@@ -1,0 +1,91 @@
+name: Deploy workflow
+
+on:
+  workflow_call:
+    secrets:
+      CRYPTO_KEY: 
+        required: true
+      MULE_CLIENT_ID: 
+        required: true
+      MULE_CLIENT_SECRET: 
+        required: true
+      ANYPOINT_CLIENT_ID: 
+        required: true
+      ANYPOINT_CLIENT_SECRET: 
+        required: true
+      GH_PAT: 
+        required: true
+    inputs:
+      mule-env: 
+        description: |
+          The MuleSoft environment that the deployment will be deployed to. Default is the current early-access release
+        required: false
+        type: string
+        default: 'early-access'
+      tag-name:
+        description: The tag name used in the build stage so the release assets can be fetched
+        required: true
+        type: string
+        default: 'early-access'
+
+
+        
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: if tag-name is an empty string, it should be 'early-access'
+      id: set-tag-name
+      run: |
+        INPUT_TAG_NAME=${{ inputs.tag-name }}
+        CURR_BRANCH=${{ GITHUB.ref_name }}
+        if [[ $INPUT_TAG_NAME == "" ]]; then echo "TAG_NAME=early-access" >> $GITHUB_OUTPUT; else echo "TAG_NAME=$INPUT_TAG_NAME" >> $GITHUB_OUTPUT; fi
+        echo $TAG_NAME
+
+    - name: Print the tag name to be deployed
+      run: |
+        echo The tag to be deployed is ${{ steps.set-tag-name.outputs.TAG_NAME }}
+
+    - name: Get Files from early-access release and extract zip file
+      uses: robinraju/release-downloader@v1.8
+      with: 
+        tag: "${{ steps.set-tag-name.outputs.TAG_NAME }}"
+        fileName: "*.jar"
+        tarBall: false
+        zipBall: true
+        out-file-path: "release_assets"
+        extract: true
+        token: ${{ secrets.GH_PAT }}
+
+    - name: Get paths to source code and jar
+      id: get_paths
+      run: |
+        echo "SOURCE_CODE=$(ls -1 -d release_assets/*mule-sample-project*/)" >> $GITHUB_OUTPUT
+        echo "JAR_FILE=$(ls release_assets/*.jar)" >> $GITHUB_OUTPUT
+
+    - name: Copy necessary files into working directory
+      run: |
+        cp ${{ steps.get_paths.outputs.SOURCE_CODE }}/pom.xml .
+        cp ${{ steps.get_paths.outputs.SOURCE_CODE }}/muleDeploy.groovy .
+
+    - name: Set up JDK 8
+      uses: actions/setup-java@v4
+      with:
+        java-version: '8'
+        distribution: 'temurin'
+        cache: maven
+
+
+    # - name: Deploy To specified environment based on profile
+    #   run: |
+    #     mvn mule-deploy:deploy \
+    #     -DmuleDeploy.env=${{ inputs.mule-env }} \
+    #     -DmuleDeploy.environmentProperty=${{ inputs.mule-env }} \
+    #     -DmuleDeploy.appArtifact=${{ steps.get_paths.outputs.JAR_FILE }} \
+    #     -Danypoint.connected-app.id=${{ secrets.MULE_CLIENT_ID }} \
+    #     -Danypoint.connected-app.secret=${{ secrets.MULE_CLIENT_SECRET }} \
+    #     -DmuleDeploy.cryptoKey=${{ secrets.CRYPTO_KEY }} \
+    #     -DmuleDeploy.autoDiscClientId=${{ secrets.ANYPOINT_CLIENT_ID }} \
+    #     -DmuleDeploy.autoDiscClientSecret= ${{ secrets.ANYPOINT_CLIENT_SECRET }} \
+    #     -Danypoint.org.name="AVIO Sandbox"
