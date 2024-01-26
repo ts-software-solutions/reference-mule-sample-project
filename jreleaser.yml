@@ -9,7 +9,7 @@ project:
     documentation: https://github.com/ts-software-solutions/ghf-mule-sample-project/
   authors:
     - Tanner Sherman
-  license: BSD 2-Clause
+  license: MIT
   inceptionYear: 2024
   tags:
     - mule
