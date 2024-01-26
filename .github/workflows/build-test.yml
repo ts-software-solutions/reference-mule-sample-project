@@ -16,23 +16,20 @@ on:
       GH_PAT: 
         required: true
     inputs:
-      build-test: 
-        description: Specify whether you would like to build the jar file or just run unit tests
+      test-only: 
+        description: Select true if you only want to run tests. False will run tests, build, and publish a snapshot release
         required: false
-        type: string
-        default: 'test'
+        type: boolean
+        default: false
     outputs:
       released-version: 
         description: The Version number that was released
         value: ${{ jobs.build-and-publish.outputs.released-version }}        
 
 jobs:
-  build-and-publish:
+  setup-java-and-maven:
     runs-on: ubuntu-latest
-    outputs:
-      released-version: ${{ steps.version.outputs.VERSION_OUTPUT }} 
     steps:
-    
     - name: checkout current branch
       uses: actions/checkout@v4
       with:
@@ -92,9 +89,11 @@ jobs:
           ]
         output_file: .m2/settings.xml
 
-    
-    #### *** If inputs.build-test == 'test' *** ####  
-    # Run MUnit Tests only
+  test:
+    runs-on: ubuntu-latest
+    if: ${{ inputs.test-only }}
+    needs: [setup-java-and-maven]
+    steps:
     - name: Run Unit Tests
       if: ${{ inputs.build-test == 'test' }}
       run: mvn clean test -e -U -s ./.m2/settings.xml -Denv=dev -Dcrypto.key=${{ secrets.MULE_DEV_CRYPTO_KEY }}
@@ -111,11 +110,17 @@ jobs:
         allowed_prefixes: ''
         ignore: main
         min_length: 5
-        max_length: 100
+        max_length: 100      
 
-    #### *** If inputs.build-test == 'build' *** ####
+  build-and-publish:
+    runs-on: ubuntu-latest
+    outputs:
+      released-version: ${{ steps.version.outputs.VERSION_OUTPUT }} 
+    if: ${{ !inputs.test-only }}
+    needs: [setup-java-and-maven]
+    steps:
+
     - name: Set Version Number based on Date and build number
-      if: ${{ inputs.build-test == 'build' }}
       id: version
       run: |
         PATCH=$(date +'%d%m%y')
@@ -123,11 +128,9 @@ jobs:
         echo VERSION_OUTPUT=1.0.$PATCH >> $GITHUB_OUTPUT
     
     - name: Set Pom version to generated version
-      if: ${{ inputs.build-test == 'build' }}
       run: mvn versions:set "-DnewVersion=${{ steps.version.outputs.VERSION_OUTPUT }}"
 
     - name: Build Jar
-      if: ${{ inputs.build-test == 'build' }}
       run: |
         mvn clean package \
         -e -U -s ./.m2/settings.xml \
