@@ -30,11 +30,6 @@ jobs:
   setup-java-and-maven:
     runs-on: ubuntu-latest
     steps:
-    - name: checkout current branch
-      uses: actions/checkout@v4
-      with:
-        ref: ${{ GITHUB.ref }}
-        token: ${{ secrets.GH_PAT }}
     
     # Setup java and maven settings
     - name: Set up JDK 8
@@ -94,6 +89,14 @@ jobs:
     if: ${{ inputs.test-only }}
     needs: [setup-java-and-maven]
     steps:
+
+    - name: checkout current branch
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ GITHUB.ref }}
+        token: ${{ secrets.GH_PAT }}
+
+
     - name: Run Unit Tests
       if: ${{ inputs.build-test == 'test' }}
       run: mvn clean test -e -U -s ./.m2/settings.xml -Denv=dev -Dcrypto.key=${{ secrets.MULE_DEV_CRYPTO_KEY }}
@@ -119,6 +122,12 @@ jobs:
     if: ${{ !inputs.test-only }}
     needs: [setup-java-and-maven]
     steps:
+
+    - name: checkout current branch
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ GITHUB.ref }}
+        token: ${{ secrets.GH_PAT }}
 
     - name: Set Version Number based on Date and build number
       id: version
