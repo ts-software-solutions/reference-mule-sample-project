@@ -20,7 +20,7 @@ on:
         description: Select true if you only want to run tests. False will run tests, build, and publish a snapshot release
         required: false
         type: boolean
-        default: false
+        default: true
     outputs:
       released-version: 
         description: The Version number that was released
@@ -32,7 +32,6 @@ jobs:
     outputs:
       released-version: ${{ steps.version.outputs.VERSION_OUTPUT }} 
     if: ${{ !inputs.test-only }}
-    needs: [setup-java-and-maven]
     steps:
 
     - name: checkout current branch
