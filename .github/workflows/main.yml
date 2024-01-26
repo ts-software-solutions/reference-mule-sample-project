@@ -35,6 +35,8 @@ jobs:
     if: ${{ (GITHUB.ref_name != 'main' && GITHUB.event_name == 'push') || (GITHUB.event_name == 'pull_request')}}
     uses: ts-software-solutions/reference-mule-sample-project/.github/workflows/build-test.yml@main
     secrets: inherit
+    with:
+      test-only: true
 
   Build-And-Publish:
     if: ${{ GITHUB.ref_name == 'main' && GITHUB.event_name == 'push'}}

@@ -31,7 +31,6 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       released-version: ${{ steps.version.outputs.VERSION_OUTPUT }} 
-    if: ${{ !inputs.test-only }}
     steps:
 
     - name: checkout current branch
