@@ -27,10 +27,14 @@ on:
         value: ${{ jobs.build-and-publish.outputs.released-version }}        
 
 jobs:
-  setup-java-and-maven:
+  build-and-publish:
     runs-on: ubuntu-latest
+    outputs:
+      released-version: ${{ steps.version.outputs.VERSION_OUTPUT }} 
+    if: ${{ !inputs.test-only }}
+    needs: [setup-java-and-maven]
     steps:
-      
+
     - name: checkout current branch
       uses: actions/checkout@v4
       with:
@@ -90,21 +94,9 @@ jobs:
           ]
         output_file: .m2/settings.xml
 
-  test:
-    runs-on: ubuntu-latest
-    if: ${{ inputs.test-only }}
-    needs: [setup-java-and-maven]
-    steps:
-
-    - name: checkout current branch
-      uses: actions/checkout@v4
-      with:
-        ref: ${{ GITHUB.ref }}
-        token: ${{ secrets.GH_PAT }}
-
 
     - name: Run Unit Tests
-      if: ${{ inputs.build-test == 'test' }}
+      if: ${{ inputs.test-only }}
       run: mvn clean test -e -U -s ./.m2/settings.xml -Denv=dev -Dcrypto.key=${{ secrets.MULE_DEV_CRYPTO_KEY }}
 
     - name: |
@@ -112,7 +104,7 @@ jobs:
         branches should include the user that completed the work's github username in all lowercase followed by '/'
         Finally a short description of the work done in snake case
         ex: feature/tannersherman/add-new-field-to-addresses
-      if: ${{ inputs.build-test == 'test' }}
+      if: ${{ inputs.test-only }}
       uses: deepakputhraya/action-branch-name@master
       with:
         regex: '(feature|fix|hotfix)\/([a-z]{1,15})\/([a-z0-9-]{1,30})|release\-[a-zA-Z0-9]{7}'
@@ -121,21 +113,9 @@ jobs:
         min_length: 5
         max_length: 100      
 
-  build-and-publish:
-    runs-on: ubuntu-latest
-    outputs:
-      released-version: ${{ steps.version.outputs.VERSION_OUTPUT }} 
-    if: ${{ !inputs.test-only }}
-    needs: [setup-java-and-maven]
-    steps:
-
-    - name: checkout current branch
-      uses: actions/checkout@v4
-      with:
-        ref: ${{ GITHUB.ref }}
-        token: ${{ secrets.GH_PAT }}
 
     - name: Set Version Number based on Date and build number
+      if: ${{ !inputs.test-only }}
       id: version
       run: |
         PATCH=$(date +'%d%m%y')
@@ -143,9 +123,13 @@ jobs:
         echo VERSION_OUTPUT=1.0.$PATCH >> $GITHUB_OUTPUT
     
     - name: Set Pom version to generated version
-      run: mvn versions:set "-DnewVersion=${{ steps.version.outputs.VERSION_OUTPUT }}"
+      if: ${{ !inputs.test-only }}
+      run: |
+        echo setting pom version to: ${{ steps.version.outputs.VERSION_OUTPUT }}
+        mvn versions:set "-DnewVersion=${{ steps.version.outputs.VERSION_OUTPUT }}"
 
     - name: Build Jar
+      if: ${{ !inputs.test-only }}
       run: |
         mvn clean package \
         -e -U -s ./.m2/settings.xml \
@@ -154,17 +138,20 @@ jobs:
         -DmuleDeploy.appArtifact=./target/mule-sample-project-${{ steps.version.outputs.VERSION_OUTPUT }}-mule-application.jar
 
     - name: Get Jar File Path
+      if: ${{ !inputs.test-only }}
       run: |
         echo "FILE_PATH=$(ls ./target/*.jar)" >> $GITHUB_OUTPUT
       id: file_properties
 
     - name: Set up java for jreleaser
+      if: ${{ !inputs.test-only }}
       uses: actions/setup-java@v4
       with:
         java-version: '11'
         distribution: 'temurin'
 
     - name: Run JReleaser
+      if: ${{ !inputs.test-only }}
       uses: jreleaser/release-action@v2
       env:
         JRELEASER_PROJECT_VERSION: ${{ steps.version.outputs.VERSION_OUTPUT }}-SNAPSHOT
@@ -174,6 +161,7 @@ jobs:
         version: 1.6.0
 
     - name: JReleaser release output
+      if: ${{ !inputs.test-only }}
       uses: actions/upload-artifact@v3
       with:
         name: jreleaser-release
