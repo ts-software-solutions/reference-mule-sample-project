@@ -37,7 +37,7 @@ jobs:
     secrets: inherit
     with:
       tag-name: ${{ inputs.tag-name }}
-      anypoint_org_name: "AVIO Sandbox"
+      anypoint-org-name: 'AVIO Sandbox'
       dev-env: 'DEV'
       uat-env: 'UAT'
       prod-env: 'PROD'
