@@ -30,8 +30,7 @@ http://www.mulesoft.org/schema/mule/api-gateway http://www.mulesoft.org/schema/m
 		<secure-properties:encrypt algorithm="Blowfish" />
 	</secure-properties:config>
 	
-	<configuration-properties doc:name="Configuration properties" doc:id="09b3fc63-1c31-41cd-90eb-4696c10cce9f" file="${env}-properties.yaml" />
-	<avio-core:config name="AVIO_Core_Config" doc:name="AVIO Core Config" doc:id="b12cd677-44dc-42f8-8751-f034edeb9f02" app_name="#[app.name]" app_version="v1" env="${env}" />	
+	<configuration-properties doc:name="Configuration properties" doc:id="09b3fc63-1c31-41cd-90eb-4696c10cce9f" file="${env}-properties.yaml" />	
 
 
 </mule>

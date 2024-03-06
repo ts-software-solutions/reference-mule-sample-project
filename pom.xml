@@ -62,20 +62,20 @@
 					</coverage>
 				</configuration>
 			</plugin>
-            <plugin>
-                <groupId>com.avioconsulting.mule</groupId>
-                <artifactId>mule-deploy-maven-plugin</artifactId>
-                <version>${mule.deploy.plugin.version}</version>
-                <executions>
-                    <execution>
-                        <id>validate</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>validate</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>		
+			<plugin>
+				<groupId>com.avioconsulting.mule</groupId>
+				<artifactId>mule-deploy-maven-plugin</artifactId>
+				<version>${mule.deploy.plugin.version}</version>
+				<executions>
+					<execution>
+						<id>validate</id>
+						<phase>package</phase>
+						<goals>
+							<goal>validate</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 	</build>
 
@@ -113,12 +113,6 @@
 	</profiles>
 
 	<dependencies>
-		<dependency>
-		  <groupId>f2ea2cb4-c600-4bb5-88e8-e952ff5591ee</groupId>
-		  <artifactId>my-custom-logger</artifactId>
-		  <version>4.0.0</version>
-		  <classifier>mule-plugin</classifier>
-		</dependency>
 		<dependency>
 			<groupId>org.mule.connectors</groupId>
 			<artifactId>mule-http-connector</artifactId>
@@ -191,6 +185,5 @@
 			</snapshots>
 		</pluginRepository>
 	</pluginRepositories>
-
 
 </project>
