@@ -24,5 +24,12 @@ muleDeploy {
             clientSecret params.autoDiscClientSecret
         }
         cloudHubAppPrefix 'tss'
+        workerSpecs {
+            muleVersion '4.3.0'
+            workerType params.workerType
+            workerCount params.workerCount
+            awsRegion params.region
+            objectStoreV2Enabled true
+        }
     }
 }
