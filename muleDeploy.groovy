@@ -25,7 +25,7 @@ muleDeploy {
         }
         cloudHubAppPrefix 'tss'
         workerSpecs {
-            muleVersion '4.3.0'
+            muleVersion '4.4.0'
             workerType params.workerType
             // workerCount params.workerCount
             awsRegion params.region
