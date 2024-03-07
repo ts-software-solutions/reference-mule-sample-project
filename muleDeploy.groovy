@@ -28,6 +28,7 @@ muleDeploy {
             muleVersion '4.4.0'
             workerType params.workerType
             // workerCount params.workerCount
+            workerCount 1
             awsRegion params.region
             objectStoreV2Enabled true
         }
