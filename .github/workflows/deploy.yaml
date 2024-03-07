@@ -41,3 +41,4 @@ jobs:
       dev-env: 'DEV'
       uat-env: 'UAT'
       prod-env: 'PROD'
+      mule-deploy-args: '-Dparams.osv2Enabled=false'

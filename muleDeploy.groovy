@@ -29,7 +29,7 @@ muleDeploy {
             workerType params.workerType
             workerCount params.workerCount.toInteger()
             awsRegion params.region
-            objectStoreV2Enabled true
+            objectStoreV2Enabled params.osv2Enabled.toBoolean()
         }
     }
 }
