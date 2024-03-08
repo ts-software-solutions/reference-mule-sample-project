@@ -44,4 +44,5 @@ jobs:
       prod-env: 'PROD'
       mule-deploy-args: |
         -DmuleDeploy.osv2Enabled=false \
-        -DmuleDeploy.testParam=what
+        -DmuleDeploy.testParam=what \
+        -DmuleDeploy.test.params=foo
