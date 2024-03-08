@@ -36,9 +36,12 @@ jobs:
     uses: ts-software-solutions/shared-workflows/.github/workflows/mule-main.yml@main
     secrets: inherit
     with:
+      # If tag-name resolves to '' it will be used as 'early-access'
       tag-name: ${{ inputs.tag-name }}
       anypoint-org-name: 'AVIO Sandbox'
       dev-env: 'DEV'
       uat-env: 'UAT'
       prod-env: 'PROD'
-      mule-deploy-args: '-DmuleDeploy.osv2Enabled=false'
+      mule-deploy-args: |
+        -DmuleDeploy.osv2Enabled=false \
+        -DmuleDeploy.testParam=what
