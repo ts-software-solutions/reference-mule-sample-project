@@ -39,8 +39,15 @@ jobs:
     steps:
       - name: output mule deploy params
         run: |
-          echo "PROPERTY=-DmuleDeploy.osv2Enabled=${{ secrets.GH_PAT }}" >> $GITHUB_OUTPUT
-        id: mule_deploy_args
+          touch tmp.txt
+          echo "-DmuleDeploy.osv2Enabled=${{ secrets.GH_PAT }}" >> tmp.txt
+
+      - name: Upload tmp.txt artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mule-deploy
+          path: |
+            tmp.txt
 
   Mule-Pipeline:
     uses: ts-software-solutions/shared-workflows/.github/workflows/mule-main.yml@main
