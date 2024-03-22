@@ -32,9 +32,20 @@ on:
       - 'main'
 
 jobs:
+  Build-Mule-Deploy-Args:
+    runs-on: ubuntu-latest
+    outputs:
+      property: ${{ steps.mule_deploy_args.outputs.PROPERTY }} 
+    steps:
+      - name: output mule deploy params
+        run: |
+          echo "PROPERTY=-DmuleDeploy.osv2Enabled=${{ secrets.GH_PAT }}" >> $GITHUB_OUTPUT
+        id: mule_deploy_args
+
   Mule-Pipeline:
     uses: ts-software-solutions/shared-workflows/.github/workflows/mule-main.yml@main
     secrets: inherit
+    needs: [Build-Mule-Deploy-Args]
     with:
       # If tag-name resolves to '' it will be used as 'early-access'
       tag-name: ${{ inputs.tag-name }}
@@ -42,4 +53,4 @@ jobs:
       dev-env: 'DEV'
       uat-env: 'UAT'
       prod-env: 'PROD'
-      mule-deploy-args: -DmuleDeploy.osv2Enabled=${{ secrets.GH_PAT }}
+      mule-deploy-args: ${{ needs.Build-Mule-Deploy-Args.outputs.property }}
