@@ -32,23 +32,6 @@ on:
       - 'main'
 
 jobs:
-  Build-Mule-Deploy-Args:
-    runs-on: ubuntu-latest
-    outputs:
-      property: ${{ steps.mule_deploy_args.outputs.PROPERTY }} 
-    steps:
-      - name: output mule deploy params
-        run: |
-          touch tmp.txt
-          echo "-DmuleDeploy.osv2Enabled=${{ secrets.GH_PAT }}" >> tmp.txt
-
-      - name: Upload tmp.txt artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: mule-deploy
-          path: |
-            tmp.txt
-
   Mule-Pipeline:
     uses: ts-software-solutions/shared-workflows/.github/workflows/mule-main.yml@main
     secrets: inherit
@@ -60,4 +43,4 @@ jobs:
       dev-env: 'DEV'
       uat-env: 'UAT'
       prod-env: 'PROD'
-      mule-deploy-args: ${{ needs.Build-Mule-Deploy-Args.outputs.property }}
+      mule-deploy-args: "-DmuleDeploy.osv2Enabled=true"
