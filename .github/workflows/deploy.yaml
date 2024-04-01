@@ -35,7 +35,6 @@ jobs:
   Mule-Pipeline:
     uses: ts-software-solutions/shared-workflows/.github/workflows/mule-main.yml@main
     secrets: inherit
-    needs: [Build-Mule-Deploy-Args]
     with:
       # If tag-name resolves to '' it will be used as 'early-access'
       tag-name: ${{ inputs.tag-name }}
